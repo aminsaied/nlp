@@ -54,11 +54,6 @@ def one_hot_of_abstract(ab, vocab):
         oh[idx] += 1
     return oh
 
-def _compute_dim_w2v(w2v):
-    """Return the dimension of word embeddings in w2v dict."""
-    a_word =  list(w2v.keys())[0]
-    return w2v[a_word].shape[0]
-
 def w2v_of_abstract(ab, w2v):
     """Return w2v representation of an abstract.
 
@@ -182,32 +177,7 @@ def k_means_data_as_w2v_from_df(df, w2v, col_name = 'Abstract'):
 
     return X_w2v
 
-def _compute_cluster_matrix(df, col1, col2, n_clusters):
-    """Return matrix of pairwise counts of clusters.
-
-    Args:
-        df: DataFrame
-        col1: str, e.g. 'lsa_pred'
-        col2: str, e.g. 'tfidf_pred'
-        n_clusters: int, number of clusters predicted
-    """
-    A = np.zeros((n_clusters, n_clusters))
-    for _, paper in df.iterrows():
-        id1 = paper[col1]
-        id2 = paper[col2]
-        A[id1][id2] += 1
-    return A
-
-# NB. NOT USING THIS
-def uniform_freq_dist(df, codes, col_name='Codes'):
-    """Return a dataframe with uniform frequency distribution in `col_name`.
-    """
-    df_by_codes = [df[df[col_name] == code] for code in codes]
-    min_count = np.min(list(map(len, df_by_codes)))
-
-    df_unif = pd.DataFrame(columns=df.columns.tolist())
-    for code in codes:
-        idx = codes[code]
-        df_unif = df_unif.append( df_by_codes[idx].sample(min_count) )
-
-    return df_unif
+def _compute_dim_w2v(w2v):
+    """Return the dimension of word embeddings in w2v dict."""
+    a_word =  list(w2v.keys())[0]
+    return w2v[a_word].shape[0]
