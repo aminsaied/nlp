@@ -18,7 +18,7 @@ In particular, the following techniques are demoed:
 
 We use the *V-measure* to compare these embedding techniques. Building the following visualisations can help interpret the performance of the models.
 
-<img src="images/lsa_w2v_tfidf_.png" alt="Drawing" style="width: 1000px;"/>
+<img src="comparison_of_document_embeddings_for_scientific_text/images/lsa_w2v_tfidf_.png" alt="Drawing" style="width: 1000px;"/>
 
 Here the `(i,j)` entry counts the number of papers in cluster-`i` and with code-`j`.
 
