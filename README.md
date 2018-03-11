@@ -3,12 +3,6 @@ A (growing) collection of projects, experiments and examples relating to NLP.
 
 ## A Comparison of Document Embeddings for Scientific Text
 
-Run the script with:
-
-~~~~
-$ python3 comparison_of_document_embeddings.py
-~~~~
-
 We compare a variety of document embedding techniques on a corpus of mathematics papers from the [arXiv](https://arxiv.org/archive/math). The general problem is to represent texts as vectors in some meaningful way (relationships between the texts are captured as relationships between their corresponding vectors).
 
 In particular, the following techniques are compared:
