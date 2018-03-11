@@ -34,15 +34,14 @@ The purpose of this script is two-fold:
 
 Here's a sketch of the model we'll build. It is essentially identical to the `Cornetto` model.
 
-<img src="images/model_design.png" style="width: 750px;"/>
+<img src="rnn_bidirectional_gru_cells/images/model_design.png" style="width: 100px;"/>
 
 where:
 
-- $x^{\langle i \rangle}$ is the $i$-th input: for us, the $i$-th word in the abstract
+- `x^i` is the `i`-th input: for us, the `i`-th word in the abstract
 - GRU cells allow for long-range dependencies and are faster to train then LSTM cells
 - the orange arrows pass a hidden state from left-to-right
 - the green arrows pass a hidden state from right-to-left (this is the bidirectional part!)
-
 
 It turns out I'm a big fan of Keras! As you'll see here, we can get a fairly intricate network up and running very quickly and with minimal fuss. In just 7 lines of code, and with a small dataset we get an accuracy of ~80-85%.
 
