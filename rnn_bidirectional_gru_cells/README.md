@@ -19,7 +19,7 @@ Here's a sketch of the model we'll build. It is essentially identical to the `Co
 
 where:
 
-- $x^{\langle i \rangle}$ is the $i$-th input: for us, the $i$-th word in the abstract
+- `x^i` is the `i`-th input: for us, the `i`-th word in the abstract
 - GRU cells allow for long-range dependencies and are faster to train then LSTM cells
 - the orange arrows pass a hidden state from left-to-right
 - the green arrows pass a hidden state from right-to-left (this is the bidirectional part!)
