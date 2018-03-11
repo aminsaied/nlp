@@ -1,183 +1,126 @@
-# python 3
+#python3
 
 import numpy as np
 import pandas as pd
 
-def split_arxiv_by_code(arxiv, codes):
-    """Return array of dataframes each containing unique code.
+DIR = 'data/'
+EXT = '.pkl'
+
+def arxiv_dataset(max_len=100, n_test=2000):
+    """Loads data ready to train our model.
 
     Args:
-        arxiv: DataFrame, of `abstracts` and `codes`
-        codes: dict, mapping a code to its index
+        max_len: int, maximum number of words considered in each input
+        n_test: int, the size of the test data
 
     Return:
-        array, of DataFrames at index i containing only those abstracts of
-            corresponding to code with index i.
+        arxiv: DataFrame, containing the abstracts and their codes
+        emb_matrix: array, mapping one-hot to w2v-embeddings
+        X_train, Y_train: tuple of training data
+        X_test, Y_test: tuple of test data
     """
-    return [arxiv[arxiv['Code'] == code] for code in codes]
+    # load data from disk
+    arxiv = pd.read_pickle( DIR + 'arxiv' + EXT)
+    word_to_vec = pd.read_pickle(DIR + 'w2v_dict_50' + EXT)
+    msc_to_index = pd.read_pickle(DIR + 'msc_to_index' + EXT)
 
-def build_vocab_from_corpus(ab_list):
-    """Return a vocab from a list of abstracts.
-
-    Args:
-        ab_list: a list of abstracts, where an abstract is a list of words
-
-    Return:
-        dict: mapping words to an index
-    """
-
-    assert type(ab_list) == list
-    assert len(ab_list) > 0
-    assert type(ab_list[0]) == list
-
-    vocab = [word for ab in ab_list for word in ab]
-    vocab = list(set(vocab))
+    # assign indices to words
+    vocab = list(word_to_vec.keys())
     vocab.sort()
-    vocab = {word:idx for (idx, word) in enumerate(vocab)}
+    word_to_index = {word: ix for (ix,word) in enumerate(vocab)}
 
-    return vocab
+    # build the embedding matrix
+    emb_matrix = embedding_matrix(word_to_vec, word_to_index)
 
-def one_hot_of_abstract(ab, vocab):
-    """Return one-hot representation of an abstract.
+    # create input data
+    sentences = np.asarray( arxiv['Abstract'] )
+    X_indices = sentences_to_indices(sentences, word_to_index, max_len)
 
-    Args:
-        ab: list, of words
-        vocab: dict, mapping words to indices
+    # create output data
+    primary_classes = np.asarray( arxiv['Code'] )
+    Y_indices = primary_to_indices(primary_classes, msc_to_index)
 
-    Return:
-        array: sum of one-hot vectors of each word in `ab`
+    # split training/test data
+    X_train, X_test = X_indices[:-n_test], X_indices[-n_test:]
+    Y_train, Y_test = Y_indices[:-n_test], Y_indices[-n_test:]
+
+    return arxiv, emb_matrix, (X_train, Y_train), (X_test, Y_test)
+
+def embedding_matrix(word_to_vec, word_to_index):
+    """Return an embedding matrix from a word_to_vec dict.
+    Arguments:
+    word_to_vec -- a dictionary containing words mapped to their embeddings
     """
-    n_words = len(vocab)
-    oh = np.zeros(n_words)
-    for word in ab:
-        idx = vocab[word]
-        oh[idx] += 1
-    return oh
+    # adding 1 to fit Keras embedding (requirement)
+    vocab_len = len(word_to_index) + 1
 
-def w2v_of_abstract(ab, w2v):
-    """Return w2v representation of an abstract.
+    # define dimensionality of word vectors
+    emb_dim = word_to_vec['group'].shape[0]
 
-    Args:
-        ab: list, of words
-        w2v: dict, mapping words to w2v embeddings
+    # Initialize the embedding matrix
+    emb_matrix = np.zeros((vocab_len, emb_dim))
 
-    Return:
-        array: sum of w2v embeddings of each word in `ab`
+    for word, index in word_to_index.items():
+        emb_matrix[index, :] = word_to_vec[word]
+
+    return emb_matrix
+
+def sentences_to_indices(sentences, word_to_index, max_len):
     """
-    dim_w2v = _compute_dim_w2v(w2v)
-    ab_w2v = np.zeros(dim_w2v)
-    for word in ab:
-        if word in w2v:
-            emb_word = w2v[word]
-            ab_w2v += emb_word
-    return ab_w2v
+    Converts an array of sentences (strings) into an array of indices corresponding to words in the sentences.
+    The output shape should be such that it can be given to `Embedding()`.
 
-def k_means_data_as_one_hot_from_abstracts(ab_list, vocab):
-    """Return array of training data for K-means consisting of one-hots.
+    Arguments:
+    sentences -- array of sentences (strings), of shape (m, 1)
+    word_to_index -- a dictionary containing words mapped to their index
+    max_len -- maximum number of words in a sentence. You can assume every sentence in X is no longer than this.
 
-    Args:
-        ab_list: list, of abstracts
-        vocab: dict, mapping words to indices
-
-    Return:
-        array: of shape (len(ab_list), len(vocab)) with one-hot representatives.
+    Returns:
+    X -- array of indices corresponding to words in the sentences from X, of shape (m, max_len)
     """
 
-    # for K-means in scikit-learn the data should be
-    # of the shape (length_of_data, dim_of_vector_space)
-    n_papers = len(ab_list)
-    n_words = len(vocab)
-    X = np.zeros((n_papers, n_words))
+    m = sentences.shape[0] # number of training examples
+    X = np.zeros((m, max_len))
 
-    # populate X with one-hot representatives
-    for idx, ab in enumerate(ab_list):
-        ab_oh = one_hot_of_abstract(ab, vocab)
-        X[idx] = ab_oh
+    for i in range(m):
+
+        sentence = sentences[i]
+
+        indices = [word_to_index[w] for w in sentence[:max_len]]
+        X[i] = indices + [0] * (max_len-len(indices))
 
     return X
 
-def k_means_data_as_one_hot_from_df(df, vocab, col_name = 'Abstract'):
-    """Return array of training data for K-means consisting of one-hots.
+def primary_to_indices(primary_classes, msc_index):
 
-    Args:
-        df: dataframe, containing column `col_name`
-        vocab: dict, mapping words to indices
-        col_name: str, name of column in `df` containing abstracts
+    m = primary_classes.shape[0] # number of training examples
+    K = len(msc_index) # number of classes
 
-    Return:
-        array: of shape (len(df), len(vocab)) with one-hot representatives.
+    Y = np.zeros((m, K)) # initialise matrix of indices
+
+    for i in range(m):
+
+        primary_class = primary_classes[i]
+        j = msc_index[primary_class]
+        Y[i][j] = 1
+
+    return Y
+
+def convert_to_one_hot(Y, K):
+    """Converts the matrix of classes to their one-hot representations.
+
+    Arguments:
+    Y -- array of primary classes
+    K -- int, total number of classes
     """
+    Y = np.eye(K)[Y.reshape(-1)]
+    return Y
 
-    assert (col_name in df.columns)
+def test_index_to_arxiv_index(idx, n_test):
+    """Return the index in the DataFrame corresponding to the test index."""
+    return idx - n_test
 
-    # for K-means in scikit-learn the data should be
-    # of the shape (length_of_data, dim_of_vector_space)
-    n_papers = len(df)
-    n_words = len(vocab)
-    X = np.zeros((n_papers, n_words))
-
-    # populate X with one-hot representatives
-    for idx, paper in df.iterrows():
-        ab_oh = one_hot_of_abstract(paper[col_name], vocab)
-        X[idx] = ab_oh
-
-    return X
-
-def k_means_data_as_w2v_from_abstracts(ab_list, w2v):
-    """Return array of training data for K-means consisting of w2v embeddings.
-
-    Args:
-        ab_list: list, of abstracts
-        w2v: dict, mapping words to w2v embeddings
-
-    Return:
-        array: of shape (len(ab_list), dim_w2v).
-    """
-
-    # for K-means in scikit-learn the data should be
-    # of the shape (length_of_data, dim_of_vector_space)
-    n_papers = len(ab_list)
-    dim_w2v = _compute_dim_w2v(w2v)
-    X_w2v = np.zeros((n_papers, dim_w2v))
-
-    # populate X with one-hot representatives
-    for idx, ab in enumerate(ab_list):
-        ab_w2v = w2v_of_abstract(ab, w2v)
-        X_w2v[idx] = ab_w2v
-
-    return X_w2v
-
-def k_means_data_as_w2v_from_df(df, w2v, col_name = 'Abstract'):
-    """Return array of training data for K-means consisting of w2v embeddings.
-
-    Args:
-        df: dataframe, containing column `col_name`
-        w2v: dict, mapping words to w2v embeddings
-        col_name: str, name of column in `df` containing abstracts
-
-    Return:
-        array: of shape (len(df), dim(w2v)).
-    """
-
-    # reset index on df
-    df_ = df.reset_index(drop=True)
-
-    assert (col_name in df.columns)
-
-    # for K-means in scikit-learn the data should be
-    # of the shape (length_of_data, dim_of_vector_space)
-    n_papers = len(df_)
-    dim_w2v = _compute_dim_w2v(w2v)
-    X_w2v = np.zeros((n_papers, dim_w2v))
-
-    # populate X with one-hot representatives
-    for idx, paper in df_.iterrows():
-        ab_w2v = w2v_of_abstract(paper[col_name], w2v)
-        X_w2v[idx] = ab_w2v
-
-    return X_w2v
-
-def _compute_dim_w2v(w2v):
-    """Return the dimension of word embeddings in w2v dict."""
-    a_word =  list(w2v.keys())[0]
-    return w2v[a_word].shape[0]
+def cosine_similarity(u, v):
+    size_u = np.sqrt(np.dot(u,u))
+    size_v = np.sqrt(np.dot(v,v))
+    return np.dot(u, v) / (size_u*size_v)
