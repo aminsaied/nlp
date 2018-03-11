@@ -6,17 +6,7 @@ import pandas as pd
 DIR = 'data/'
 EXT = '.pkl'
 
-def load_arxiv_data():
-    arxiv = pd.read_pickle( DIR + 'arxiv_full' + EXT)
-    word_to_vec = pd.read_pickle(DIR + 'w2v_dict_50' + EXT)
-    vocab = list(word_to_vec.keys())
-    vocab.sort()
-    word_to_index = {word: ix for (ix,word) in enumerate(vocab)}
-    emb_matrix = embedding_matrix(word_to_vec, word_to_index)
-    msc_to_index = pd.read_pickle(DIR + 'msc_to_index_full' + EXT)
-    return arxiv, word_to_vec, word_to_index, emb_matrix, msc_to_index
-
-def arxiv_dataset(max_len, n_test):
+def arxiv_dataset(max_len=100, n_test=2000):
     """Loads data ready to train our model.
 
     Args:
@@ -55,11 +45,6 @@ def arxiv_dataset(max_len, n_test):
     Y_train, Y_test = Y_indices[:-n_test], Y_indices[-n_test:]
 
     return arxiv, emb_matrix, (X_train, Y_train), (X_test, Y_test)
-
-def cosine_similarity(u, v):
-    size_u = np.sqrt(np.dot(u,u))
-    size_v = np.sqrt(np.dot(v,v))
-    return np.dot(u, v) / (size_u*size_v)
 
 def embedding_matrix(word_to_vec, word_to_index):
     """Return an embedding matrix from a word_to_vec dict.
@@ -121,7 +106,6 @@ def primary_to_indices(primary_classes, msc_index):
 
     return Y
 
-
 def convert_to_one_hot(Y, K):
     """Converts the matrix of classes to their one-hot representations.
 
@@ -135,3 +119,8 @@ def convert_to_one_hot(Y, K):
 def test_index_to_arxiv_index(idx, n_test):
     """Return the index in the DataFrame corresponding to the test index."""
     return idx - n_test
+
+def cosine_similarity(u, v):
+    size_u = np.sqrt(np.dot(u,u))
+    size_v = np.sqrt(np.dot(v,v))
+    return np.dot(u, v) / (size_u*size_v)
