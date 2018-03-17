@@ -25,10 +25,8 @@ from sklearn import metrics
 
 from utils import *
 
-arxiv = pd.read_pickle('data/arxiv.pkl')
-ab_list = arxiv['Abstract'].tolist()
-codes = pd.read_pickle('data/msc_to_index.pkl')
-w2v = pd.read_pickle('data/w2v_dict_50.pkl')
+arxiv, codes, w2v = load_dataset()
+corpus = arxiv['Abstract'].tolist()
 
 if __name__ == '__main__':
 
@@ -38,7 +36,7 @@ if __name__ == '__main__':
     print('Number of papers:', len(arxiv))
 
     # create vocab
-    vocab = build_vocab_from_corpus(ab_list)
+    vocab = build_vocab_from_corpus(corpus)
     n_words = len(vocab)
     print('Number of words in vocab is', n_words)
     print()
@@ -52,7 +50,7 @@ if __name__ == '__main__':
 
     # w2v
     print('Building word-to-vec features...')
-    X_w2v = k_means_data_as_w2v_from_abstracts(ab_list, w2v)
+    X_w2v = k_means_data_as_w2v_from_corpus(corpus, w2v)
     normalizer = Normalizer(copy=False)
     X_w2v = normalizer.transform(X_w2v)
 
@@ -63,7 +61,7 @@ if __name__ == '__main__':
                                  min_df=2, stop_words='english',
                                  use_idf=True)
 
-    abs_corpus = [' '.join(ab) for ab in ab_list]
+    abs_corpus = [' '.join(ab) for ab in corpus]
     X_tfidf = vectorizer.fit_transform(abs_corpus)
 
     # lsa
