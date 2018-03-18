@@ -1,5 +1,7 @@
 # Building a Deep RNN with Bidirectional GRUs in Keras
 
+We use Keras to build and train a deep RNN with bidirectional GRU cells to classify mathematics text by subject.
+
 To run the script:
 
 ~~~~
@@ -11,9 +13,9 @@ The purpose of this script is two-fold:
 1. To build a light-weight version of our [Cornetto](https://github.com/aminsaied/cornetto) library for demonstration purposes.
 2. As an excuse to build an RNN with Keras.
 
-[Cornetto](https://github.com/aminsaied/cornetto) was designed to classify mathematics papers based on their abstracts. Its central model is of the same design as the model we construct here and was implemented in TensorFlow.
+[Cornetto](https://github.com/aminsaied/cornetto) was designed to classify mathematics papers based only on their abstracts. Here we reproduce its underlying model - albeit with Keras, as opposed to directly in TensorFlow.
 
-Here's a sketch of the model we'll build. It is essentially identical to the `Cornetto` model.
+Here's a sketch of the model we'll build.
 
 <img src="images/model_design.png" style="width: 750px;"/>
 
