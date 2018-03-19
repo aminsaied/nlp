@@ -14,7 +14,7 @@ This is an experimental algorithm designed to identify subjects in scientific te
 
 Here is an overview of the algorithm.
 
-<img src="tictoc_text_clustering/images/tictoc_overview.png" alt="Drawing" style="width: 1000px;"/>
+<img src="images/tictoc_overview.png" alt="Drawing" style="width: 1000px;"/>
 
 We set up a small experiment:
 
