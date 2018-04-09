@@ -1,8 +1,10 @@
-# python3
-
+#!/usr/bin/env python3
+"""Helper functions for `rnn_bidirectional_gru` script.
+"""
 import numpy as np
 import pandas as pd
 
+# useful variables
 DIR = 'data/'
 EXT = '.pkl'
 
@@ -48,51 +50,47 @@ def arxiv_dataset(max_len=100, n_test=2000):
 
 def embedding_matrix(word_to_vec, word_to_index):
     """Return an embedding matrix from a word_to_vec dict.
-    Arguments:
-    word_to_vec -- a dictionary containing words mapped to their embeddings
+
+    Args:
+        word_to_vec: dict, mapping words to their embeddings
+
+    Return:
+        An array with rows corresponding to word embeddings.
     """
-    # adding 1 to fit Keras embedding (requirement)
-    vocab_len = len(word_to_index) + 1
+    vocab_len = len(word_to_index) + 1              # Keras requirement
+    emb_dim = word_to_vec['group'].shape[0]         # dim of word vectors
 
-    # define dimensionality of word vectors
-    emb_dim = word_to_vec['group'].shape[0]
-
-    # Initialize the embedding matrix
+    # build embedding matrix
     emb_matrix = np.zeros((vocab_len, emb_dim))
-
     for word, index in word_to_index.items():
         emb_matrix[index, :] = word_to_vec[word]
 
     return emb_matrix
 
 def sentences_to_indices(sentences, word_to_index, max_len):
+    """Convert sentence into array of indices.
+
+    Args:
+        sentences: array, of shape (m, 1) made of `m` sentences
+        word_to_index: dict, mapping words to their indices
+        max_len: int, the maximum length of a sentence
+
+    Return:
+        An array of shape (m, max_len) consisting of word indices.
     """
-    Converts an array of sentences (strings) into an array of indices corresponding to words in the sentences.
-    The output shape should be such that it can be given to `Embedding()`.
-
-    Arguments:
-    sentences -- array of sentences (strings), of shape (m, 1)
-    word_to_index -- a dictionary containing words mapped to their index
-    max_len -- maximum number of words in a sentence. You can assume every sentence in X is no longer than this.
-
-    Returns:
-    X -- array of indices corresponding to words in the sentences from X, of shape (m, max_len)
-    """
-
-    m = sentences.shape[0] # number of training examples
-    X = np.zeros((m, max_len))
+    m = sentences.shape[0]                  # num training examples
+    X = np.zeros((m, max_len))              # initialise output array
 
     for i in range(m):
-
         sentence = sentences[i]
-
         indices = [word_to_index[w] for w in sentence[:max_len]]
         X[i] = indices + [0] * (max_len-len(indices))
 
     return X
 
 def primary_to_indices(primary_classes, msc_index):
-
+    """Convert msc-code to its index.
+    """
     m = primary_classes.shape[0] # number of training examples
     K = len(msc_index) # number of classes
 
@@ -105,22 +103,3 @@ def primary_to_indices(primary_classes, msc_index):
         Y[i][j] = 1
 
     return Y
-
-def convert_to_one_hot(Y, K):
-    """Converts the matrix of classes to their one-hot representations.
-
-    Arguments:
-    Y -- array of primary classes
-    K -- int, total number of classes
-    """
-    Y = np.eye(K)[Y.reshape(-1)]
-    return Y
-
-def test_index_to_arxiv_index(idx, n_test):
-    """Return the index in the DataFrame corresponding to the test index."""
-    return idx - n_test
-
-def cosine_similarity(u, v):
-    size_u = np.sqrt(np.dot(u,u))
-    size_v = np.sqrt(np.dot(v,v))
-    return np.dot(u, v) / (size_u*size_v)

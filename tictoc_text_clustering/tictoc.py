@@ -1,4 +1,4 @@
-# python 3
+#!/usr/bin/env python3
 """Contains the Tic and Toc classes used to detect clusters in text-data.
 
 This is a rather strange idea I wanted to try out. Here are the two steps:
@@ -18,27 +18,18 @@ This is a rather strange idea I wanted to try out. Here are the two steps:
 Please be aware that this is not an established technique - just a fun
 experiment!
 """
-
-from __future__ import print_function
-
+import os
 import numpy as np
-# import pandas as pd
 
-# imports for TIC-step
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import Normalizer
 from sklearn import metrics
-
-# imports for TOC-step
 from keras.models import Model
 from keras.layers import Dense, Input, Bidirectional, GRU
 from keras.layers.embeddings import Embedding
 
 # surpress some tensorflow warnings
-import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-
-from utils import *
 
 class Tic(object):
     """The tic step in the tic-toc algorithm.
@@ -49,7 +40,6 @@ class Tic(object):
         - Label the documents with their cluster index
         - Pass this labelled data to the toc-step
     """
-
     def __init__(self, arxiv, emb_matrix, X_indices, Y_labels):
         self.arxiv = arxiv
         self.emb_matrix = emb_matrix
@@ -117,7 +107,6 @@ class Toc(object):
         - Update the embedding matrix during training
         - Pass this updated embedding matrix to the tic-step
     """
-
     def __init__(self, X_indices, emb_matrix, n_classes, n_test, params=None):
 
         self.X_indices  = X_indices
@@ -172,7 +161,6 @@ class Toc(object):
         return emb_matrix_step
 
     def _build_model(self):
-
         # useful varaibles
         vocab_len, emb_dim = self.emb_matrix.shape
         max_len  = self.toc_params['max_len']

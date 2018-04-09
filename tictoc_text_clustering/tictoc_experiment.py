@@ -1,12 +1,13 @@
-# python 3
-
+#!/usr/bin/env python3
+"""Script running the 'tic-toc' experiment described in the docs.
+"""
 from tictoc import Tic, Toc
-from utils import *
+from utils import load_data
 
 # useful parameters
-K      = 9     # number of classes
-N_TEST = 2000  # number of test examples
-N_ITER = 5     # number of tic-toc iterations
+K = 9                       # num. classes
+N_TEST = 2000               # num. test examples
+N_ITER = 5                  # num. tic-toc iterations
 
 if __name__ == '__main__':
 

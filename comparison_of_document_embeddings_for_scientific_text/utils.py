@@ -1,5 +1,6 @@
-# python 3
-
+#!/usr/bin/env python3
+"""Helper functions for `comparison_of_document_embeddings` script.
+"""
 import numpy as np
 import pandas as pd
 
@@ -21,7 +22,6 @@ def build_vocab_from_corpus(corpus):
     Return:
         dict: mapping words to an index
     """
-
     assert type(corpus) == list
     assert len(corpus) > 0
     assert type(corpus[0]) == list
@@ -32,46 +32,6 @@ def build_vocab_from_corpus(corpus):
     vocab = {word:idx for (idx, word) in enumerate(vocab)}
 
     return vocab
-
-def one_hot_of_abstract(ab, vocab):
-    """Return one-hot representation of an abstract.
-
-    Args:
-        ab: list, of words
-        vocab: dict, mapping words to indices
-
-    Return:
-        array: sum of one-hot vectors of each word in `ab`
-    """
-    n_words = len(vocab)
-    oh = np.zeros(n_words)
-    for word in ab:
-        idx = vocab[word]
-        oh[idx] += 1
-    return oh
-
-def _compute_dim_w2v(w2v):
-    """Return the dimension of word embeddings in w2v dict."""
-    a_word =  list(w2v.keys())[0]
-    return w2v[a_word].shape[0]
-
-def _w2v_of_abstract(ab, w2v):
-    """Return w2v representation of an abstract.
-
-    Args:
-        ab: list, of words
-        w2v: dict, mapping words to w2v embeddings
-
-    Return:
-        array: sum of w2v embeddings of each word in `ab`
-    """
-    dim_w2v = _compute_dim_w2v(w2v)
-    ab_w2v = np.zeros(dim_w2v)
-    for word in ab:
-        if word in w2v:
-            emb_word = w2v[word]
-            ab_w2v += emb_word
-    return ab_w2v
 
 def k_means_data_as_one_hot_from_df(df, vocab, col_name = 'Abstract'):
     """Return array of training data for K-means consisting of one-hots.
@@ -84,7 +44,6 @@ def k_means_data_as_one_hot_from_df(df, vocab, col_name = 'Abstract'):
     Return:
         array: of shape (len(df), len(vocab)) with one-hot representatives.
     """
-
     assert (col_name in df.columns)
 
     # for K-means in scikit-learn the data should be
@@ -110,16 +69,47 @@ def k_means_data_as_w2v_from_corpus(corpus, w2v):
     Return:
         array: of shape (len(corpus), dim_w2v).
     """
-
     # for K-means in scikit-learn the data should be
     # of the shape (length_of_data, dim_of_vector_space)
     n_papers = len(corpus)
-    dim_w2v = _compute_dim_w2v(w2v)
+    dim_w2v = compute_dim_w2v(w2v)
     X_w2v = np.zeros((n_papers, dim_w2v))
 
     # populate X with one-hot representatives
     for idx, ab in enumerate(corpus):
-        ab_w2v = _w2v_of_abstract(ab, w2v)
+        ab_w2v = w2v_of_abstract(ab, w2v)
         X_w2v[idx] = ab_w2v
 
     return X_w2v
+
+def one_hot_of_abstract(ab, vocab):
+    """Return one-hot representation of an abstract.
+
+    Args:
+        ab: list, of words
+        vocab: dict, mapping words to indices
+
+    Return:
+        array: sum of one-hot vectors of each word in `ab`
+    """
+    n_words = len(vocab)
+    oh = np.zeros(n_words)
+    for word in ab:
+        idx = vocab[word]
+        oh[idx] += 1
+    return oh
+
+def compute_dim_w2v(w2v):
+    """Return the dimension of word embeddings in w2v dict."""
+    a_word =  list(w2v.keys())[0]
+    return w2v[a_word].shape[0]
+
+def w2v_of_abstract(ab, w2v):
+    """Return word-to-vec representation of an abstract."""
+    dim_w2v = compute_dim_w2v(w2v)
+    ab_w2v = np.zeros(dim_w2v)
+    for word in ab:
+        if word in w2v:
+            emb_word = w2v[word]
+            ab_w2v += emb_word
+    return ab_w2v
